@@ -3,6 +3,21 @@
   user: jwallace
   sudo: yes
   tasks:
+#  - name: Install user 'jwallace'
+#    user: name=jwallace password='$1$SALT$7DlqNtINMt/Wr6CigkiCK.' groups=wheel
+#
+#  - name: Install SSH key in authorized_keys
+#    authorized_key: user=jwallace key="{{ lookup('file', '/home/jwallace/.ssh/id_rsa.pub') }}"
+#
+  - name: Disable SELinux
+    lineinfile: dest=/etc/selinux/config regexp=^SELINUX= line=SELINUX=disabled
+
+#  - name: Enable SUDO access for Wheel group
+#    lineinfile: dest=/etc/sudoers state=present regexp='# %wheel   ALL\=\(ALL\)   NOPASSWD' line='%wheel ALL=(ALL) NOPASSWD:ALL' validate='visudo -cf %s'
+
+  - name: Disable IPTables
+    service: name=iptables state=stopped
+
   - name: Download EPEL Repo
     get_url: dest=/tmp/epel-release.rpm url=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
 
@@ -15,6 +30,8 @@
     - screen
     - wget
     - git
+    - vim
+    - nc
 
   - name: Install Sensu Server Node Required Packages
     yum: pkg={{ item }} state=installed 
@@ -73,7 +90,12 @@
   - name: Install Sensu
     yum: pkg=sensu state=installed
 
-# COPY IN THE SENSU CONFIGURATION
+  - name: Install a default Sensu config.json
+    copy: src=/etc/ansible/filestore/sensu_config.json dest=/etc/sensu/config.json owner=root group=root mode=644
+
+  - name: Install a default Sensu client.json
+    copy: src=/etc/ansible/filestore/sensu_client.json dest=/etc/sensu/conf.d/client.json owner=root group=root mode=644
+
 # CONFIGURE SSL IN SENSU
 
   - name: Register Sensu Services and start
@@ -86,5 +108,3 @@
 
 #  Generate password with the following command:
 #  openssl passwd -salt ANYTHING -1 PASSWORD
-#  - name: Install user 'jwallace'
-#    user: name=jwallace password='$1$SALT$7DlqNtINMt/Wr6CigkiCK.' groups=wheel
