@@ -108,3 +108,21 @@
 
 #  Generate password with the following command:
 #  openssl passwd -salt ANYTHING -1 PASSWORD
+
+  - name: Install NodeJS
+    yum: pkg=npm state=installed
+
+  - name: Install HomeSHick
+    git: repo=git://github.com/andsens/homeshick.git dest=/home/jwallace/.homesick/repos/homeshick
+
+  - name: Update bashrc to have homeshick initialization
+    lineinfile: dest=/home/jwallace/.bashrc line="$HOME/.homesick/repos/homeshick/homeshick.sh" regexp='homeshick'
+
+  - name: Create dotfiles castle in HomeSHick
+    command: /home/jwallace/.homesick/repos/homeshick/bin/homeshick generate dotfiles
+
+  - name: Clone my dotfile Repo
+    git: repo=git://github.com/fdask/dotfiles.git dest=/home/jwallace/.homesick/repos/dotfiles/
+
+# varnish server
+# monitoring on varnish and webserver
