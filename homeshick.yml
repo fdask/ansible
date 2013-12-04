@@ -1,0 +1,15 @@
+---
+- hosts: all
+  user: jwallace
+  tasks:
+  - name: Checkout the HomeSHick Git
+    git: repo=git://github.com/andsens/homeshick.git dest=/home/jwallace/.homesick/repos/homeshick
+
+  - name: Update bashrc to have homeshick initialization
+    lineinfile: dest=/home/jwallace/.bashrc line="source $HOME/.homesick/repos/homeshick/homeshick.sh" regexp='homeshick'
+
+  - name: Clone my dotfile Repo
+    git: repo=git://github.com/fdask/dotfiles.git dest=/home/jwallace/.homesick/repos/dotfiles
+
+  - name: Link out dotfiles
+    command: /home/jwallace/.homesick/repos/homeshick/bin/homeshick link dotfiles -f -q

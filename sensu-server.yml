@@ -1,0 +1,74 @@
+---
+# Installs a Sensu Server With WebUI 
+- name: Install Sensu Server Node Required Packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - erlang
+
+- name: Install RabbitMQ GPG Key
+  rpm_key: state=present key=http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
+
+- name: Download RabbitMQ RPM
+  get_url: dest=/tmp/rabbitmq-server-3.2.1-1.noarch.rpm url=http://www.rabbitmq.com/releases/rabbitmq-server/v3.2.1/rabbitmq-server-3.2.1-1.noarch.rpm
+
+- name: Install RabbitMQ RPM
+  yum: pkg=/tmp/rabbitmq-server-3.2.1-1.noarch.rpm state=installed
+
+  # RABBITMQ SSL STUFF HERE
+  # http://www.rabbitmq.com/ssl.html
+  #- name: Copy over script to generate RabbitMQ SSL Certs
+  #  copy: src=/etc/ansible/filestore/rabbitmq_ssl_certs.sh dest=/tmp/rabbitmq_ssl_certs.sh owner=root group=root mode=700
+  #
+  #- name: Run the script and generate the SSL Certs
+  #  shell: /tmp/rabbitmq_ssl_certs.sh generate chdir=/tmp
+  
+- name: Enable RabbitMQ Service and start it NOW
+  service: name=rabbitmq-server enabled=yes state=started
+  
+- name: Enable RabbitMQ Management Plugin
+  rabbitmq_plugin: names=rabbitmq_management state=enabled
+  
+- name: Add a Sensu Vhost to RabbitMQ
+  rabbitmq_vhost: name=/sensu state=present
+  
+- name: Add a Sensu User to RabbitMQ
+  rabbitmq_user: user=sensu password=mypass vhost=/sensu configure_priv=.* read_priv=.* write_priv=.* state=present
+  
+- name: Install Redis
+  yum: pkg=redis state=installed
+  
+- name: Start Redis and chkconfig it
+  service: name=redis enabled=yes state=started
+
+- name: Install Ruby and required packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - ruby
+  - ruby-ri
+  - ruby-rdoc
+  - ruby-shadow
+  - rubygems
+  - curl
+  - openssl-devel
+
+- name: Install the Sensu Repo
+  copy: src=/etc/ansible/filestore/sensu.repo dest=/etc/yum.repos.d/sensu.repo owner=root group=root mode=644
+
+- name: Install Sensu
+  yum: pkg=sensu state=installed
+
+- name: Install a default Sensu config.json
+  copy: src=/etc/ansible/filestore/sensu_config.json dest=/etc/sensu/config.json owner=root group=root mode=644
+
+- name: Install a default Sensu client.json
+  copy: src=/etc/ansible/filestore/sensu_client.json dest=/etc/sensu/conf.d/client.json owner=root group=root mode=644
+
+# CONFIGURE SSL IN SENSU
+
+- name: Register Sensu Services and start
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+  - sensu-server
+  - sensu-api
+  - sensu-client
+  - sensu-dashboard
