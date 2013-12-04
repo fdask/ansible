@@ -1,0 +1,25 @@
+---
+- hosts: all
+  user: jwallace
+  sudo: yes
+  tasks:
+  - name: Install the nginx/php-fpm packages from Yum
+    yum: pkg={{ item }} state=installed
+    with_items:
+    - nginx
+    - php-fpm
+
+  - name: Install Nginx.conf to Enable PHP-FPM
+    copy: src=/etc/ansible/filestore/nginx_default.conf dest=/etc/nginx/conf.d/default.conf owner=root group=root mode=644
+    notify: 
+      - restart nginx
+
+  - name: Set the services to start at boot
+    service: name={{ item }} enabled=yes state=started
+    with_items:
+    - nginx
+    - php-fpm
+
+  handlers:
+  - name: restart nginx
+    service: name=nginx state=restarted

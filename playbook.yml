@@ -34,16 +34,21 @@
     - vim
     - nc
 
-#  - include: sensu-server.yml
 
 #  Generate password with the following command:
 #  openssl passwd -salt ANYTHING -1 PASSWORD
 
-  - name: Install NodeJS
-    yum: pkg=npm state=installed
+#  - name: Install NodeJS
+#    yum: pkg=npm state=installed
 
-  # INSTALL HOMESHICK
-- include: homeshick.yml 
+# INSTALL HOMESHICK
+#- include: homeshick.yml 
+
+# INSTALL SENSU-SERVER
+#- include: sensu-server.yml
+
+# INSTALL NGINX + PHP-FPM
+- include: nginx-phpfpm.yml
 
 # varnish server
 # monitoring on varnish and webserver
