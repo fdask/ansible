@@ -48,7 +48,11 @@
 #- include: sensu-server.yml
 
 # INSTALL NGINX + PHP-FPM
-- include: nginx-phpfpm.yml
+#- include: nginx-phpfpm.yml
+
+# INSTALL VARNISH
+- include: varnish.yml
 
 # varnish server
 # monitoring on varnish and webserver
+# mysql

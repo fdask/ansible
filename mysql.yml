@@ -1,0 +1,7 @@
+---
+- hosts: all
+  user: jwallace
+  sudo: yes
+  gather_facts: no
+  tasks:
+  

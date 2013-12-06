@@ -1,0 +1,13 @@
+---
+- hosts: all
+  user: jwallace
+  sudo: yes
+  tasks:
+  - name: Install the Varnish GPG Key to yum
+    rpm_key: state=present key=http://repo.varnish-cache.org/debian/GPG-key.txt
+
+  - name: Install Varnish
+    yum: pkg=varnish state=installed
+
+  - name: Set Varnish to start on boot
+    service: name=varnish enabled=yes state=started

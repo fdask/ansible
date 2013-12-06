@@ -1,0 +1,13 @@
+---
+- hosts: all
+  user: jwallace
+  sudo: yes
+  gather_facts: no
+  tasks:
+  - name: Download the latest Wordpress tarball
+    get_url: dest=/tmp/latest.tar.gz url=http://wordpress.org/latest.tar.gz
+
+  - name: Extract the Tarball into a web directory
+    unarchive: src=/tmp/latest.tar.gz dest=/var/www/html
+
+
