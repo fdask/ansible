@@ -1,7 +1,13 @@
 ---
 - hosts: all
-  user: jwallace
   sudo: yes
   gather_facts: no
   tasks:
-  
+  - name: Install MySQL VIA yum
+    yum: pkg={{ item }} state=installed 
+    with_items: 
+      - mysql
+      - mysql-server
+
+  - name: Set MySQL to start at boot
+    service: name=mysqld enabled=yes state=started
