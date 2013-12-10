@@ -1,6 +1,5 @@
 ---
 - hosts: all
-  user: jwallace
   sudo: yes
   gather_facts: no
   tasks:
@@ -10,8 +9,13 @@
 #  - name: Install SSH key in authorized_keys
 #    authorized_key: user=jwallace key="{{ lookup('file', '/home/jwallace/.ssh/id_rsa.pub') }}"
 #
+  - name: Check to see if SELinux is installed
+    stat: path=/etc/selinux/config
+    register: seconf
+
   - name: Disable SELinux
     lineinfile: dest=/etc/selinux/config regexp=^SELINUX= line=SELINUX=disabled
+    when: seconf.stat.exists is defined and seconf.stat.exists == true
 
 #  - name: Enable SUDO access for Wheel group
 #    lineinfile: dest=/etc/sudoers state=present regexp='# %wheel   ALL\=\(ALL\)   NOPASSWD' line='%wheel ALL=(ALL) NOPASSWD:ALL' validate='visudo -cf %s'
@@ -34,7 +38,6 @@
     - vim
     - nc
 
-
 #  Generate password with the following command:
 #  openssl passwd -salt ANYTHING -1 PASSWORD
 
@@ -48,10 +51,10 @@
 #- include: sensu-server.yml
 
 # INSTALL NGINX + PHP-FPM
-#- include: nginx-phpfpm.yml
+- include: nginx-phpfpm.yml
 
 # INSTALL VARNISH
-- include: varnish.yml
+#- include: varnish.yml
 
 # varnish server
 # monitoring on varnish and webserver

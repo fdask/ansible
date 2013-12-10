@@ -1,6 +1,5 @@
 ---
 - hosts: all
-  user: jwallace
   sudo: yes
   tasks:
   - name: Install the nginx/php-fpm packages from Yum
@@ -13,6 +12,12 @@
     copy: src=/etc/ansible/filestore/nginx_default.conf dest=/etc/nginx/conf.d/default.conf owner=root group=root mode=644
     notify: 
       - restart nginx
+
+  - name: Edit php-fpm.d/www.conf to change user to nginx
+    lineinfile: dest=/etc/php-fpm.d/www.conf regexp="^user = apache" line="user = nginx"
+  
+  - name: Edit php-fpm.d/www.conf to change group to nginx
+    lineinfile: dest=/etc/php-fpm.d/www.conf regexp="^group = apache" line="group = nginx"
 
   - name: Set the services to start at boot
     service: name={{ item }} enabled=yes state=started

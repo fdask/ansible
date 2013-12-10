@@ -10,4 +10,4 @@ Probably want to use SSH Agent to remember the passphrase for the keys used.
 
 To run the playbook, add the machine to /etc/hosts and issue the following command:
 
-# ansible-playbook ./playbook.yml
+# ansible-playbook -u REMOTE-USER ./playbook.yml
