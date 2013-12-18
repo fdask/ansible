@@ -1,0 +1,51 @@
+---
+- hosts: all
+  user: jwallace
+  sudo: yes
+  tasks:
+  # needed for 'socat' package which Percona requires
+  - name: Add RPMForge Repo GPG Key
+    rpm_key: state=present key=http://apt.sw.be/RPM-GPG-KEY.dag.txt
+
+  - name: Add the RPMForge Repo
+    copy: src=/etc/ansible/filestore/rpmforge.repo dest=/etc/yum.repos.d/rpmforge.repo owner=root group=root mode=644
+
+  - name: Add Percona Repo GPG Key
+    rpm_key: state=present key=https://www.percona.com/downloads/RPM-GPG-KEY-percona 
+
+  - name: Add the Percona Yum Repo
+    copy: src=/etc/ansible/filestore/percona.repo dest=/etc/yum.repos.d/percona.repo owner=root group=root mode=644 
+
+  - name: Remove the mysql-libs package.  It conflicts with Percona.
+    yum: pkg=mysql-libs state=absent
+
+  - name: Install the XtraDB Cluster tools
+    yum: pkg={{ item }} state=installed
+    with_items:
+    - Percona-XtraDB-Cluster-server-55
+    - Percona-XtraDB-Cluster-client-55
+    - Percona-XtraDB-Cluster-galera-2
+
+#  - name: Set Percona server to start at boot
+#  3306, 4444, 4567 and 4568 are the ports that need to be open
+#  selinux needs to be disabled
+#
+[mysqld]
+
+wsrep_provider — a path to Galera library.
+wsrep_cluster_address — Cluster connection URL containing the IPs of other nodes in the cluster
+wsrep_sst_method - method used for the state snapshot transfer
+
+binlog_format=ROW - In order for Galera to work correctly binlog format should be ROW
+default_storage_engine=InnoDB - MyISAM storage engine has only experimental support
+innodb_locks_unsafe_for_binlog=1 - This is a recommended tuning variable for performance
+innodb_autoinc_lock_mode=2 - This changes how InnoDB autoincrement locks are managed.
+
+wsrep_provider=/usr/lib64/libgalera_smm.so
+wsrep_cluster_address=gcomm://10.11.12.206
+wsrep_slave_threads=8
+wsrep_sst_method=rsync
+binlog_format=ROW
+default_storage_engine=InnoDB
+innodb_locks_unsafe_for_binlog=1
+innodb_autoinc_lock_mode=2
