@@ -52,6 +52,7 @@
 
 # INSTALL NGINX + PHP-FPM
 - include: nginx-phpfpm.yml
+- include: mysql.yml
 
 # INSTALL VARNISH
 #- include: varnish.yml
