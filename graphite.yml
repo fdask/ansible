@@ -1,0 +1,59 @@
+# http://graphite.wikidot.com/installation
+---
+- hosts: all
+  user: jwallace
+  sudo: yes
+  tasks:
+  - name: We need git, and some python tools
+    yum: pkg={{ item }} state=installed
+    with_items:
+    - git
+    - python-setuptools
+    - python-twisted
+    - python-memcached
+    - pycairo
+    - bitmap-fonts-compat
+
+  - name: Install pip
+    easy_install: name=pip
+
+  - name: Upgrade setuptools
+    pip: name=setuptools extra_args='--no-use-wheel' state=latest
+
+  - name: Use pip to install needed python libraries
+    pip: name={{ item }} 
+    with_items:
+    - django
+    - django-tagging
+
+  - name: Download whisper (stable version)
+    git: repo=https://github.com/graphite-project/whisper.git dest=/tmp/whisper version=0.9.x
+
+  - name: Install whisper
+    command: chdir=/tmp/whisper python setup.py install
+
+  - name: Download carbon
+    git: repo=https://github.com/graphite-project/carbon.git dest=/tmp/carbon version=0.9.x
+
+  - name: Install carbon
+    command: chdir=/tmp/carbon python setup.py install
+
+  - name: Configure carbon (1/2)
+    command: chdir=/opt/graphite/conf creates=carbon.conf cp carbon.conf.example carbon.conf
+
+  - name: Configure carbon (2/2)
+    command: chdir=/opt/graphite/conf creates=storage-schemas.conf cp storage-schemas.conf.example storage-schemas.conf
+
+  - name: Download graphite-web
+    git: repo=https://github.com/graphite-project/graphite-web.git dest=/tmp/graphite-web version=0.9.x
+
+  - name: Install graphite-web
+    command: chdir=/tmp/graphite-web python setup.py install
+
+  - name: Initialize the SQLite DB
+    command: chdir=/opt/graphite/webapp/graphite python manage.py syncdb
+
+# and now we need a database
+# and a webserver
+# and to configure the graphite-web files
+
