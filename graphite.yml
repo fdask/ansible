@@ -17,11 +17,14 @@
   - name: Install pip
     easy_install: name=pip
 
-  - name: Upgrade setuptools
-    pip: name=setuptools extra_args='--no-use-wheel' state=latest
+  - name: Upgrade setuptools (1/2)
+    pip: name=setuptools extra_args='--upgrade --no-use-wheel'
+
+  - name: Upgrade setuptools (2/2)
+    pip: name=setuptools extra_args='--upgrade --no-use-wheel'
 
   - name: Use pip to install needed python libraries
-    pip: name={{ item }} 
+    pip: name={{ item }} use_mirrors=no
     with_items:
     - django
     - django-tagging
@@ -50,8 +53,8 @@
   - name: Install graphite-web
     command: chdir=/tmp/graphite-web python setup.py install
 
-  - name: Initialize the SQLite DB
-    command: chdir=/opt/graphite/webapp/graphite python manage.py syncdb
+#  - name: Initialize the SQLite DB
+    #command: chdir=/opt/graphite/webapp/graphite python manage.py syncdb
 
 # and now we need a database
 # and a webserver
