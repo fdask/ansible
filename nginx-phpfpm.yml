@@ -2,6 +2,12 @@
 - hosts: all
   sudo: yes
   tasks:
+  - name: Download EPEL Repo
+    get_url: dest=/tmp/epel-release.rpm url=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+
+  - name: Install EPEL Repo
+    yum: pkg=/tmp/epel-release.rpm state=installed
+
   - name: Install the nginx/php-fpm packages from Yum
     yum: pkg={{ item }} state=installed
     with_items:
