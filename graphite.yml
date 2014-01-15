@@ -15,6 +15,7 @@
     - bitmap-fonts-compat
     - libevent-devel
     - python-devel
+    - gcc-c++
 
   - name: Install pip
     easy_install: name=pip
@@ -31,12 +32,6 @@
     - django
     - django-tagging
     - uwsgi
-
-  - name: Copy the uWSGI init script over
-    copy: src=/etc/ansible/filestore/uwsgi-init dest=/etc/init.d/uwsgi mode=0755
-
-  - name: Copy the uWSGI Nginx/Django INI file over
-    copy: src=/etc/ansible/filestore/
 
   - name: Download whisper (stable version)
     git: repo=https://github.com/graphite-project/whisper.git dest=/tmp/whisper version=0.9.x
@@ -61,6 +56,12 @@
 
   - name: Install graphite-web
     command: chdir=/tmp/graphite-web python setup.py install
+
+  - name: Copy the uWSGI init script over
+    copy: src=/etc/ansible/filestore/uwsgi-init dest=/etc/init.d/uwsgi mode=0755
+
+  - name: Copy the uWSGI Nginx/Django INI file over
+    copy: src=/etc/ansible/filestore/graphite.ini dest=/opt/graphite/conf/graphite.ini
 
   - name: Download EPEL Repo
     get_url: dest=/tmp/epel-release.rpm url=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
