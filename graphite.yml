@@ -63,6 +63,9 @@
   - name: Copy the uWSGI Nginx/Django INI file over
     copy: src=/etc/ansible/filestore/graphite.ini dest=/opt/graphite/conf/graphite.ini
 
+  - name: Copy the uwsgi.py file over
+    copy: src=/etc/ansible/filestore/uwsgi.py dest=/opt/graphite/webapp/graphite/uwsgi.py
+
   - name: Download EPEL Repo
     get_url: dest=/tmp/epel-release.rpm url=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
 
@@ -75,7 +78,20 @@
   - name: Install the graphite nginx config
     copy: src=/etc/ansible/filestore/graphite.conf dest=/etc/nginx/conf.d/graphite.conf
 
-#  - name: Set nginx to start at boot
+  - name: Install the graphite settings file
+    copy: src=/etc/ansible/filestore/graphite_local_settings.py dest=/opt/graphite/webapp/graphite/local_settings.py
 
-#  - name: Initialize the SQLite DB
-    #command: chdir=/opt/graphite/webapp/graphite python manage.py syncdb
+  - name: Initialize the SQLite DB
+    command: chdir=/opt/graphite/webapp/graphite python manage.py syncdb --noinput
+
+  - name: Setup proper graphite permissions
+    file: path=/opt/graphite/storage owner=nginx recurse=yes
+
+  - name: Start nginx/uwsgi and have them start on reboot
+    service: name={{ item }} enabled=yes state=started
+    with_items:
+    - nginx
+    - uwsgi
+
+  - name: Disable IPTables
+    service: name=iptables state=stopped enabled=no

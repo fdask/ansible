@@ -1,155 +1,70 @@
-#!/usr/bin/env bash
+#!/bin/bash
+#
+# /etc/rc.d/init.d/uwsgi
+# This shell script takes care of starting and stopping
+# ns-slapd (the Fedora Directory Server)
+#
+# Author: James Wallace <sausages@gmail.com>
+#
+# chkconfig: 2345 13 87
+# description: Start uwsgi
 
-### BEGIN INIT INFO
-# Provides:          uwsgi
-# Required-Start:    $all
-# Required-Stop:     $all
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
-# Short-Description: starts the uwsgi app server
-# Description:       starts uwsgi app server using start-stop-daemon
-### END INIT INFO
-set -e
+# Source function library.
+. /etc/init.d/functions
 
-VERSION=$(basename $0)
+PROG=uwsgi
+DIR=/usr/bin
+PIDFILE=/var/run/$PROG.pid
+LOGFILE=/var/log/$PROG.log
+OPTIONS="--ini /opt/graphite/conf/graphite.ini --daemonize $LOGFILE"
 
-if [[ "uwsgi uwsgi.init" =~ $VERSION ]]; then
-    echo "Please use version-specific uwsgi!"
-    find /etc/init.d/ -name 'uwsgi-2.?' -exec echo "  {}" \;
-    exit 1
+if [ -f /etc/sysconfig/uwsgi ]; then
+	. /etc/sysconfig/uwsgi
 fi
 
-PATH=/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-DAEMON=/usr/local/bin/$VERSION
-RUN=/var/run/$VERSION/
-CONFIGS_DIR=/etc/uwsgi/$VERSION/sites-enabled
-OWNER=www-data
-NAME=$VERSION
-DESC=$VERSION
-OP=$1
+start() {
+	echo -n "Starting $PROG: "
 
-if [[ -n $2 ]]; then
-    shift
-    ENABLED_CONFIGS=""
-    for c in $@; do
-        [[ -f $CONFIGS_DIR/$c ]] && \
-            ENABLED_CONFIGS=$(echo -e "$ENABLED_CONFIGS\n$CONFIGS_DIR/$c")
-    done
-else
-    ENABLED_CONFIGS=$(find $CONFIGS_DIR/ -not -type d)
-fi
-
-[[ -x $DAEMON ]] || exit 0
-[[ -d $RUN ]] || mkdir $RUN && chown www-data $RUN
-
-DAEMON_OPTS=""
-
-# Include uwsgi defaults if available
-if [[ -f /etc/default/$VERSION ]]; then
-    . /etc/default/$VERSION
-fi
-
-do_pid_check()
-{
-    local PIDFILE=$1
-    [[ -f $PIDFILE ]] || return 0
-    local PID=$(cat $PIDFILE)
-    for p in $(pgrep $VERSION); do
-        [[ $p == $PID ]] && return 1
-    done
-    return 0
+	if [ -f $PIDFILE ]; then
+		PID=`cat $PIDFILE`
+		echo $PROG already running: $PID
+		exit 2;
+	else
+		cd $DIR
+		daemon ./$PROG $OPTIONS
+		RETVAL=$?
+		echo
+		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/$PROG
+		return $RETVAL
+		fi
 }
 
-
-do_start()
-{
-    for config in $ENABLED_CONFIGS; do
-        local PIDFILE=$RUN/$(basename $config).pid
-        if do_pid_check $PIDFILE; then
-            sudo -u $OWNER -i $VERSION $config $DAEMON_OPTS --pidfile $PIDFILE
-        else
-            echo "Already running!"
-        fi
-    done
+stop() {
+	echo -n "Shutting down $PROG: "
+	echo
+	killproc $PROG
+	echo
+	rm -f /var/lock/subsys/$PROG
+	return 0
 }
 
-send_sig()
-{
-    for config in $ENABLED_CONFIGS; do
-        local PIDFILE=$RUN/$(basename $config).pid
-        set +e
-        [[ -f $PIDFILE ]] && kill $1 $(cat $PIDFILE) > /dev/null 2>&1
-        set -e
-    done
-}
-
-wait_and_clean_pidfiles()
-{
-    for config in $ENABLED_CONFIGS; do
-        local PIDFILE=$RUN/$(basename $config).pid
-        until do_pid_check $PIDFILE; do
-            echo -n "";
-        done
-        rm -f $PIDFILE
-    done
-}
-
-do_stop()
-{
-    send_sig -3
-    wait_and_clean_pidfiles
-}
-
-do_reload()
-{
-    send_sig -1
-}
-
-do_force_reload()
-{
-    send_sig -15
-}
-
-get_status()
-{
-    send_sig -10
-}
-
-case "$OP" in
+case "$1" in
     start)
-        echo "Starting $DESC: "
-        do_start
-        echo "$NAME."
+        start
         ;;
     stop)
-        echo -n "Stopping $DESC: "
-        do_stop
-        echo "$NAME."
-        ;;
-    reload)
-        echo -n "Reloading $DESC: "
-        do_reload
-        echo "$NAME."
-        ;;
-    force-reload)
-        echo -n "Force-reloading $DESC: "
-        do_force_reload
-        echo "$NAME."
-       ;;
-    restart)
-        echo  "Restarting $DESC: "
-        do_stop
-        sleep 1
-        do_start
-        echo "$NAME."
+        stop
         ;;
     status)
-        get_status
+        status ns-slapd
+        ;;
+    restart)
+        stop
+        start
         ;;
     *)
-        N=/etc/init.d/$NAME
-        echo "Usage: $N {start|stop|restart|reload|force-reload|status}" >&2
+        echo "Usage:  {start|stop|status|restart}"
         exit 1
         ;;
 esac
-exit 0
+exit $?
