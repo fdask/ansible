@@ -95,3 +95,6 @@
 
   - name: Disable IPTables
     service: name=iptables state=stopped enabled=no
+
+# at this point, you need to create a superuser manually
+# cd /opt/graphite/webapp/graphite; python manage.py createsuperuser
