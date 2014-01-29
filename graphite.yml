@@ -93,6 +93,9 @@
     - nginx
     - uwsgi
 
+  - name: Add carbon-cache init to rc.local
+    lineinfile: dest=/etc/rc.local line='/opt/graphite/bin/carbon-cache.py start'
+
   - name: Disable IPTables
     service: name=iptables state=stopped enabled=no
 
