@@ -1,0 +1,22 @@
+---
+- hosts: all
+  user: jwallace
+  sudo: yes
+  tasks:
+  - name: Copy over Jenkins Repo File
+    copy: src=/etc/ansible/filestore/jenkins.repo dest=/etc/yum.repos.d/jenkins.repo owner=root group=root mode=644
+
+  - name: Install the GPG Key for the Jenkins Repo File
+    rpm_key: state=present key=http://pkg.jenkins-ci.org/redhat/jenkins-ci.org.key
+
+  - name: Install Java
+    yum: pkg=java-1.7.0-opensdk state=installed
+
+  - name: Install Jenkins
+    yum: pkg=jenkins state=installed
+
+  - name: Disable IPTables
+    service: name=iptables state=stopped
+
+  - name: Start Jenkins (and make it restart at boot)
+    service: name=jenkins state=started enabled=yes
