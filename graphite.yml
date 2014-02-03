@@ -99,5 +99,10 @@
   - name: Disable IPTables
     service: name=iptables state=stopped enabled=no
 
+# there is a bug in the graphite code as of this writing.  it's in /opt/graphite/webapp/graphite/storage.py, line 308...  READS:
+#return whisper.fetch(self.fs_path, startTime, endTime, now)
+# NEEDS TO READ
+#return whisper.fetch(self.fs_path, startTime, endTime)
+
 # at this point, you need to create a superuser manually
 # cd /opt/graphite/webapp/graphite; python manage.py createsuperuser
