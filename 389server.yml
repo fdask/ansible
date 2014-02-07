@@ -1,0 +1,18 @@
+# http://graphite.wikidot.com/installation
+---
+- hosts: all
+  user: jwallace
+  sudo: yes
+  tasks:
+  - name: Download the EPEL repo
+    get_url: dest=/tmp/epel-release.rpm url=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+
+  - name: Install EPEL Repo
+    yum: pkg=/tmp/epel-release.rpm state=installed
+
+  - name: Install 389server repo
+    copy: src=/etc/ansible/filestore/epel-389-ds-base.repo dest=/etc/yum.repos.d/epel-389-ds-base.repo owner=root group=root mode=644
+
+  - name: Install 389server using yum
+    yum: name=389-ds state=present
+

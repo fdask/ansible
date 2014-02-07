@@ -1,0 +1,29 @@
+# Place this file in your /etc/yum.repos.d/ directory
+
+[epel-389-ds-base]
+name=389-ds-base package for EL6
+baseurl=http://repos.fedorapeople.org/repos/rmeggins/389-ds-base/epel-6/$basearch/
+enabled=1
+skip_if_unavailable=1
+gpgcheck=0
+
+[epel-389-ds-base-source]
+name=389-ds-base package for EL6 - Source
+baseurl=http://repos.fedorapeople.org/repos/rmeggins/389-ds-base/epel-6/SRPMS
+enabled=0
+skip_if_unavailable=1
+gpgcheck=0
+
+[epel-testing-389-ds-base]
+name=389-ds-base package for EL6 testing
+baseurl=http://repos.fedorapeople.org/repos/rmeggins/389-ds-base/epel-6/testing/$basearch/
+enabled=0
+skip_if_unavailable=1
+gpgcheck=0
+
+[epel-testing-389-ds-base-source]
+name=389-ds-base package for EL6 testing - Source
+baseurl=http://repos.fedorapeople.org/repos/rmeggins/389-ds-base/epel-6/testing/SRPMS
+enabled=0
+skip_if_unavailable=1
+gpgcheck=0
