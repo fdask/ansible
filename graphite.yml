@@ -87,14 +87,15 @@
   - name: Setup proper graphite permissions
     file: path=/opt/graphite/storage owner=nginx recurse=yes
 
+  - name: Copy over the carbon-cache init script
+    copy: src=/etc/ansible/filestore/carbon-cache-init dest=/etc/init.d/carbon-cache  mode=0755
+
   - name: Start nginx/uwsgi and have them start on reboot
     service: name={{ item }} enabled=yes state=started
     with_items:
     - nginx
     - uwsgi
-
-  - name: Add carbon-cache init to rc.local
-    lineinfile: dest=/etc/rc.local line='/opt/graphite/bin/carbon-cache.py start'
+    - carbon-cache
 
   - name: Disable IPTables
     service: name=iptables state=stopped enabled=no

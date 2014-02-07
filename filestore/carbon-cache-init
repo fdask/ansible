@@ -1,0 +1,87 @@
+#!/bin/bash
+#
+# carbon-cache - This script starts and stops the carbon-cache service.
+#
+# chkconfig:   - 85 15
+# description: carbon-cache accepts graphite metrics and writes them to
+#              disk using whisper
+# processname: carbon-cache.py
+# config:      /etc/sysconfig/carbon-cache
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ "$NETWORKING" = "no" ] && exit 0
+
+exec="/opt/graphite/bin/carbon-cache.py"
+prog=$(basename "$exec")
+CARBON_CONFIG_PATH="/opt/graphite/conf/carbon.conf"
+CARBON_CACHE_ARGS=""
+CARBON_CACHE_PIDFILE="/var/run/carbon-cache.pid"
+GRAPHITE_STORAGE_DIR="/opt/graphite/lib/carbon"
+
+if [ -f /etc/sysconfig/carbon-cache ]; then
+    . /etc/sysconfig/carbon-cache
+fi
+
+export GRAPHITE_STORAGE_DIR
+
+restart() {
+    stop
+    start
+}
+
+rh_status() {
+    status -p "$CARBON_CACHE_PIDFILE" "$prog"
+}
+
+start() {
+    echo -n 'Starting carbon-cache...'
+    daemon --pidfile="$CARBON_CACHE_PIDFILE" "$exec" start $args \
+      --config="$CARBON_CONFIG_PATH" --pidfile="$CARBON_CACHE_PIDFILE" >/dev/null
+    retval=$?
+    echo
+    return $retval
+}
+
+stop() {
+    echo -n 'Stopping carbon-cache...'
+    killproc -p "$CARBON_CACHE_PIDFILE" "$prog"
+    retval=$?
+    echo
+    return $retval
+}
+
+case $1 in
+    condrestart|try-restart)
+        rh_status 2>/dev/null && restart
+        ;;
+    reload|force-reload)
+        restart
+        ;;
+    restart)
+        restart
+        ;;
+    start)
+        start
+        ;;
+    status)
+        rh_status
+        ;;
+    status_q)
+        rh_status >/dev/null 2>&1
+        ;;
+    stop)
+        stop
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart|try-restart|reload|force-reload}"
+        exit 2
+        ;;
+esac
+
+exit $?
