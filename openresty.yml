@@ -12,8 +12,13 @@
 #wget http://openresty.org/download/ngx_openresty-1.5.8.1.tar.gz
 #tar zxvf ngx_openresty-1.5.8.1.tar.gz
 #cd ngx_openresty-1.5.8.1
-#./configure
+#./configure --with-luajit
 #gmake
 #gmake install
 #
-#
+#wget http://luarocks.org/releases/luarocks-2.1.2.tar.gz
+#tar zxvf ./luarocks-2.1.2.tar.gz
+#cd luarocks-2.1.2
+#./configure --prefix=/usr/local/openresty/luajit --with-lua=/usr/local/openresty/luajit/ --lua-suffix=jit-2.1.0-alpha --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1
+#make build
+#make install
