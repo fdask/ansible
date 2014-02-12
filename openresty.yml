@@ -1,0 +1,19 @@
+---
+- hosts: all
+  sudo: yes
+  tasks:
+  - name: Download the OpenResty tarball
+    get_url: url=http://openresty.org/download/ngx_openresty-1.5.8.1.tar.gz dest=/tmp/openresty.tar.gz mode=0440
+
+  - name: Extract OpenResty tarball
+    unarchive: src=/tmp/openresty.tar.gz dest=/tmp/openresty
+
+#install wget perl gcc-c++ pcre-devel openssl-devel
+#wget http://openresty.org/download/ngx_openresty-1.5.8.1.tar.gz
+#tar zxvf ngx_openresty-1.5.8.1.tar.gz
+#cd ngx_openresty-1.5.8.1
+#./configure
+#gmake
+#gmake install
+#
+#
