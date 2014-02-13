@@ -63,3 +63,6 @@
  
   - name: Compile and install the lua-resty-mongo package
     command: chdir=/tmp/mongol/ make install
+
+# add to nginx.conf
+# lua_package_path '/usr/local/openresty/lualib/?/init.lua;;';
