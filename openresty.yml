@@ -2,11 +2,32 @@
 - hosts: all
   sudo: yes
   tasks:
+  - name: Install required packages
+    yum: pkg={{ item }} state=installed
+    with_items:
+    - perl 
+    - gcc-c++ 
+    - pcre-devel 
+    - openssl-devel
+    - git
+
   - name: Download the OpenResty tarball
     get_url: url=http://openresty.org/download/ngx_openresty-1.5.8.1.tar.gz dest=/tmp/openresty.tar.gz mode=0440
 
   - name: Extract OpenResty tarball
-    unarchive: src=/tmp/openresty.tar.gz dest=/tmp/openresty
+    command: chdir=/tmp/ /bin/tar zxf openresty.tar.gz
+
+  - name: Configure OpenResty
+    command: chdir=/tmp/ngx_openresty-1.5.8.1 /tmp/ngx_openresty-1.5.8.1/configure --with-luajit
+
+  - name: Compile OpenResty
+    command: chdir=/tmp/ngx_openresty-1.5.8.1 gmake
+
+  - name: Install OpenResty
+    command: chdir=/tmp/ngx_openresty-1.5.8.1 gmake install
+
+  - name: Copy over the init script
+    copy: src=/etc/ansible/filestore/openresty-init dest=/etc/init.d/openresty mode=0755 
 
 #install wget perl gcc-c++ pcre-devel openssl-devel
 #wget http://openresty.org/download/ngx_openresty-1.5.8.1.tar.gz
@@ -22,3 +43,23 @@
 #./configure --prefix=/usr/local/openresty/luajit --with-lua=/usr/local/openresty/luajit/ --lua-suffix=jit-2.1.0-alpha --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1
 #make build
 #make install
+  - name: Download the LuaRocks tarball
+    get_url: url=http://luarocks.org/releases/luarocks-2.1.2.tar.gz dest=/tmp/luarocks.tar.gz mode=0440
+
+  - name: Extract LuaRocks tarball
+    command: chdir=/tmp/ /bin/tar zxf luarocks.tar.gz
+
+  - name: Configure LuaRocks
+    command: chdir=/tmp/luarocks-2.1.2/ /tmp/luarocks-2.1.2/configure --prefix=/usr/local/openresty/luajit --with-lua=/usr/local/openresty/luajit/ --lua-suffix=jit-2.1.0-alpha --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1
+
+  - name: Compile LuaRocks
+    command: chdir=/tmp/luarocks-2.1.2 make build
+
+  - name: Install LuaRocks
+    command: chdir=/tmp/luarocks-2.1.2 make install
+
+  - name: Pull the lua-resty-mongo repo
+    git: repo=https://github.com/bigplum/lua-resty-mongol.git dest=/tmp/mongol/
+ 
+  - name: Compile and install the lua-resty-mongo package
+    command: chdir=/tmp/mongol/ make install
