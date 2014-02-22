@@ -1,6 +1,15 @@
 ---
 - hosts: all
   user: jwallace
+  sudo: yes
+  tasks:
+  - name: Install Required Packages
+    yum: pkg={{ item }} state=installed
+    with_items:
+    - git
+
+- hosts: all
+  user: jwallace
   tasks:
   - name: Checkout the HomeSHick Git
     git: repo=git://github.com/andsens/homeshick.git dest=/home/jwallace/.homesick/repos/homeshick
