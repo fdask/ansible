@@ -1,4 +1,8 @@
-To kick off the process, we need a user on the remote machine with sudo access.
+Install Ansible first!
+
+> yum install ansible
+
+Now, to kick off the process, we need a user on the remote machine with sudo access.
 Then make sure we can log in using a key!
 
 > ssh-copy-id user@machine
