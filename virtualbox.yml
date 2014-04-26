@@ -1,0 +1,14 @@
+# http://graphite.wikidot.com/installation
+---
+- hosts: all
+  user: jwallace
+  sudo: yes
+  tasks:
+  - name: Import the Oracle Repo Key
+    rpm_key: state=present key=http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc
+
+  - name: Install the oracle repo
+    copy: src=/etc/ansible/filestore/virtualbox.repo dest=/etc/yum.repos.d/virtualbox.repo owner=root group=root mode=644
+     
+  - name: Install VirtualBox-4.3
+    yum: pkg=VirtualBox-4.3 state=installed

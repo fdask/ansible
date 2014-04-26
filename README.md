@@ -1,6 +1,6 @@
 Install Ansible first!
 
-> yum install ansible
+> yum install ansible python-setuptools
 
 Now, to kick off the process, we need a user on the remote machine with sudo access.
 Then make sure we can log in using a key!
