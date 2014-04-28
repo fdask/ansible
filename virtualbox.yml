@@ -12,3 +12,9 @@
      
   - name: Install VirtualBox-4.3
     yum: pkg=VirtualBox-4.3 state=installed
+
+# kernel-devel dkms
+#
+# ln -s /usr/src/kernels/2.6.32-431.11.2.el6.x86_64/ /usr/src/kernels/2.6.32-431.el6.x86_64
+#
+# /etc/init.d/vboxdrv setup
