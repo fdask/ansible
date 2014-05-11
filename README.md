@@ -1,3 +1,6 @@
+No website, nothing fancy.  A public repo of some uber basic playbooks for installing things with Ansible.
+A lot done as a learning excercise, almost all on CentOS 5 or 6 so non rh derivatives may have problems.
+
 Install Ansible first!
 
 > yum install ansible python-setuptools
