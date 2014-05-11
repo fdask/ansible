@@ -12,37 +12,23 @@
     - git
 
   - name: Download the OpenResty tarball
-    get_url: url=http://openresty.org/download/ngx_openresty-1.5.8.1.tar.gz dest=/tmp/openresty.tar.gz mode=0440
+    get_url: url=http://openresty.org/download/ngx_openresty-1.5.12.1.tar.gz dest=/tmp/openresty.tar.gz mode=0440
 
   - name: Extract OpenResty tarball
     command: chdir=/tmp/ /bin/tar zxf openresty.tar.gz
 
   - name: Configure OpenResty
-    command: chdir=/tmp/ngx_openresty-1.5.8.1 /tmp/ngx_openresty-1.5.8.1/configure --with-luajit
+    command: chdir=/tmp/ngx_openresty-1.5.12.1 /tmp/ngx_openresty-1.5.12.1/configure
 
   - name: Compile OpenResty
-    command: chdir=/tmp/ngx_openresty-1.5.8.1 gmake
+    command: chdir=/tmp/ngx_openresty-1.5.12.1 gmake
 
   - name: Install OpenResty
-    command: chdir=/tmp/ngx_openresty-1.5.8.1 gmake install
+    command: chdir=/tmp/ngx_openresty-1.5.12.1 gmake install
 
   - name: Copy over the init script
     copy: src=/etc/ansible/filestore/openresty-init dest=/etc/init.d/openresty mode=0755 
 
-#install wget perl gcc-c++ pcre-devel openssl-devel
-#wget http://openresty.org/download/ngx_openresty-1.5.8.1.tar.gz
-#tar zxvf ngx_openresty-1.5.8.1.tar.gz
-#cd ngx_openresty-1.5.8.1
-#./configure --with-luajit
-#gmake
-#gmake install
-#
-#wget http://luarocks.org/releases/luarocks-2.1.2.tar.gz
-#tar zxvf ./luarocks-2.1.2.tar.gz
-#cd luarocks-2.1.2
-#./configure --prefix=/usr/local/openresty/luajit --with-lua=/usr/local/openresty/luajit/ --lua-suffix=jit-2.1.0-alpha --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1
-#make build
-#make install
   - name: Download the LuaRocks tarball
     get_url: url=http://luarocks.org/releases/luarocks-2.1.2.tar.gz dest=/tmp/luarocks.tar.gz mode=0440
 
