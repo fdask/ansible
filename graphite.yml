@@ -69,13 +69,13 @@
     command: chdir=/tmp/graphite-web python setup.py install
 
   - name: Copy the uWSGI init script over
-    copy: src=/etc/ansible/filestore/uwsgi-init dest=/etc/init.d/uwsgi mode=0755
+    copy: src=./filestore/uwsgi-init dest=/etc/init.d/uwsgi mode=0755
 
   - name: Copy the uWSGI Nginx/Django INI file over
-    copy: src=/etc/ansible/filestore/graphite.ini dest=/opt/graphite/conf/graphite.ini
+    copy: src=./filestore/graphite.ini dest=/opt/graphite/conf/graphite.ini
 
   - name: Copy the uwsgi.py file over
-    copy: src=/etc/ansible/filestore/uwsgi.py dest=/opt/graphite/webapp/graphite/uwsgi.py
+    copy: src=./filestore/uwsgi.py dest=/opt/graphite/webapp/graphite/uwsgi.py
 
   - name: Download EPEL Repo
     get_url: dest=/tmp/epel-release.rpm url=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
@@ -87,10 +87,10 @@
     yum: pkg=nginx state=installed
 
   - name: Install the graphite nginx config
-    copy: src=/etc/ansible/filestore/graphite.conf dest=/etc/nginx/conf.d/graphite.conf
+    copy: src=./filestore/graphite.conf dest=/etc/nginx/conf.d/graphite.conf
 
   - name: Install the graphite settings file
-    copy: src=/etc/ansible/filestore/graphite_local_settings.py dest=/opt/graphite/webapp/graphite/local_settings.py
+    copy: src=./filestore/graphite_local_settings.py dest=/opt/graphite/webapp/graphite/local_settings.py
 
   - name: Initialize the SQLite DB
     command: chdir=/opt/graphite/webapp/graphite python manage.py syncdb --noinput
@@ -99,7 +99,7 @@
     file: path=/opt/graphite/storage owner=nginx recurse=yes
 
   - name: Copy over the carbon-cache init script
-    copy: src=/etc/ansible/filestore/carbon-cache-init dest=/etc/init.d/carbon-cache  mode=0755
+    copy: src=./filestore/carbon-cache-init dest=/etc/init.d/carbon-cache  mode=0755
 
   - name: Start nginx/uwsgi and have them start on reboot
     service: name={{ item }} enabled=yes state=started
