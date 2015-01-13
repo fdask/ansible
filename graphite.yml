@@ -9,6 +9,8 @@
     with_items:
     - git
     - python-setuptools
+    - pcre
+    - pcre-devel
 
   - name: Install python-twisted-core (CentOS 7)
     yum: name=python-twisted-core state=installed
@@ -118,3 +120,12 @@
 
 # at this point, you need to create a superuser manually
 # cd /opt/graphite/webapp/graphite; python manage.py createsuperuser
+#
+# we need to do an edit to the /opt/graphite/webapp/graphite/uwsgi.py file.  it's not compatible with newer versions of 
+# django.
+#
+# http://stackoverflow.com/questions/25537905/django-1-7-throws-django-core-exceptions-appregistrynotready-models-arent-load
+#
+# essentially replace the import and initialization with
+# from django.core.wsgi import get_wsgi_application
+# application = get_wsgi_application()
