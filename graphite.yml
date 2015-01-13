@@ -9,7 +9,18 @@
     with_items:
     - git
     - python-setuptools
-    - python-twisted
+
+  - name: Install python-twisted-core (CentOS 7)
+    yum: name=python-twisted-core state=installed
+    when: ansible_distribution=="CentOS" and ansible_distribution_major_version=="7"
+
+  - name: Install python-twisted (CentOS < 7)
+    yum: name=python-twisted state=installed
+    when: ansible_distribution=="CentOS" and ansible_distribution_major_version|int < 7
+
+  - name: python-memcached, pycairo, bitmap-fonts-compat, libevent-devel, python-devel, gcc-c++
+    yum: pkg={{ item }} state=installed
+    with_items:
     - python-memcached
     - pycairo
     - bitmap-fonts-compat
