@@ -25,6 +25,7 @@
     with_items:
     - python-memcached
     - pycairo
+    - pytz
     - bitmap-fonts-compat
     - libevent-devel
     - python-devel
@@ -129,3 +130,6 @@
 # essentially replace the import and initialization with
 # from django.core.wsgi import get_wsgi_application
 # application = get_wsgi_application()
+
+# in /opt/graphite/conf/carbon.conf we have to change the storage directory to point to /opt/graphite/storage before
+# anything in the UI gets picked up!
