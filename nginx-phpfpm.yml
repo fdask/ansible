@@ -2,11 +2,11 @@
 - hosts: all
   sudo: yes
   tasks:
-  - name: Download EPEL Repo
-    get_url: dest=/tmp/epel-release.rpm url=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+  - include: centos6.8-epel.yml
+    when: ansible_distribution == 'CentOS' and ansible_distribution_version == "6.8"
 
-  - name: Install EPEL Repo
-    yum: pkg=/tmp/epel-release.rpm state=installed
+  - include: centos7-epel.yml
+    when: ansible_distribution == 'CentOS' and ansible_distribution_version == "7"
 
   - name: Install the nginx/php-fpm packages from Yum
     yum: pkg={{ item }} state=installed
@@ -15,7 +15,7 @@
     - php-fpm
 
   - name: Install Nginx.conf to Enable PHP-FPM
-    copy: src=/etc/ansible/filestore/nginx_default.conf dest=/etc/nginx/conf.d/default.conf owner=root group=root mode=644
+    copy: src=filestore/nginx_default.conf dest=/etc/nginx/conf.d/default.conf owner=root group=root mode=644
     notify: 
       - restart nginx
 
