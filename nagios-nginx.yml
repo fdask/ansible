@@ -48,6 +48,7 @@
     with_items:
     - ./configure
     - make all
+    - make install-base
     - make install-init
     - make install-config
     - make install-commandmode
@@ -63,11 +64,33 @@
   - name: edit the nagios path in the config for the cgi's
     lineinfile: dest=/usr/local/nagios/etc/cgi.cfg regexp=url_html_path=/nagios line=url_html_path=/
 
-  - name: restart nagios
+  - name: set up the user for full permissions
+    replace: dest=/usr/local/nagios/etc/cgi.cfg replace=jwallace regexp=nagiosadmin
+
+  - name: create some directories for nagios to use as a spool
+    file: path=/usr/local/nagios/var/spool state=directory mode=0755 owner=nagios
+    file: path=/usr/local/nagios/var/spool/checkresults state=directory mode=0755 owner=nagios
+
+  - name: restart nginx
     service: name=nginx state=restarted
+
+  - name: enable the nagios service
+    service: name=nagios state=started enabled=yes
 
 # remove the /tmp/nagios* files
 
+  - name: grab the nagios plugins code
+    get_url: url=http://nagios-plugins.org/download/nagios-plugins-2.0.3.tar.gz dest=/tmp/ mode=0440
+
+  - name: extract nagios plugins tarball
+    shell: 'cd /tmp; tar zxvf ./nagios-plugins-2.0.3.tar.gz'
+
+  - name: install nagios plugins!
+    shell: 'cd /tmp/nagios-plugins-2.0.3; {{ item }}'
+    with_items:
+    - ./configure
+    - make 
+    - make install
 #
 # cd /usr/local/src
 # wget http://nagios-plugins.org/download/nagios-plugins-2.0.3.tar.gz
