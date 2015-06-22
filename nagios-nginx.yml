@@ -1,0 +1,94 @@
+---
+- hosts: all
+  user: jwallace
+  sudo: yes
+  tasks:
+  - name: Install a nagios user
+    user: name=nagios comment="Nagios User"
+
+  - name: Install some required packages
+    yum: pkg={{ item }} state=installed
+    with_items:
+    - fcgi-devel
+    - spawn-fcgi
+    - httpd-tools
+    - mailx
+    - gd
+    - gd-devel
+    - autoconf
+    - automake
+    - gcc
+    - python-passlib
+
+  - name: Grab the fcgiwrap repo
+    git: repo=https://github.com/gnosek/fcgiwrap.git dest=/usr/local/src/fcgiwrap
+
+  - name: Compile and install fcgiwrap
+    shell: 'cd /usr/local/src/fcgiwrap; {{ item }}'
+    with_items:
+    - autoreconf -i
+    - ./configure
+    - make
+    - make install
+
+  - name: copy over the spawn-fcgi config file!
+    copy: src=filestore/spawn-fcgi dest=/etc/sysconfig/spawn-fcgi owner=root group=root mode=644
+
+  - name: tell spawn-fcgi to start at boot, and start now
+    service: name=spawn-fcgi state=started enabled=yes
+
+  - name: grab the nagios code
+    get_url: url=http://prdownloads.sourceforge.net/sourceforge/nagios/nagios-4.0.8.tar.gz dest=/tmp/ mode=0440
+
+  - name: extract nagios tarball
+    shell: 'cd /tmp; tar zxvf ./nagios-4.0.8.tar.gz'
+
+  - name: install nagios
+    shell: 'cd /tmp/nagios-4.0.8; {{ item }}'
+    with_items:
+    - ./configure
+    - make all
+    - make install-init
+    - make install-config
+    - make install-commandmode
+    - make install-cgis
+    - make install-html 
+
+  - name: install the nagios.conf file in the nginx conf.d directory
+    copy: src=filestore/nagios.conf dest=/etc/nginx/conf.d/nagios.conf owner=root group=root mode=644
+
+  - name: generate an htpasswd file to be used for the authentication
+    htpasswd: path=/usr/local/nagios/etc/passwd name=jwallace password=testing owner=nginx mode=640
+
+  - name: edit the nagios path in the config for the cgi's
+    lineinfile: dest=/usr/local/nagios/etc/cgi.cfg regexp=url_html_path=/nagios line=url_html_path=/
+
+  - name: restart nagios
+    service: name=nginx state=restarted
+
+# remove the /tmp/nagios* files
+
+#
+# cd /usr/local/src
+# wget http://nagios-plugins.org/download/nagios-plugins-2.0.3.tar.gz
+# tar zxvf ./nagios-plugins-2.0.3.tar.gz
+# cd nagios-plugins-2.0.3
+# ./configure
+# make
+# make install
+#
+# # install nsca-ng
+# yum install libconfuse-devel openssl-devel
+#
+# cd /usr/local/src;
+# wget http://www.nsca-ng.org/download/nsca-ng-1.4.tar.gz
+# tar zxvf ./nsca-ng-1.4.tar.gz
+# cd nsca-ng-1.4
+# ./configure --prefix=/usr/local/nagios --enable-server
+# make
+# make install
+#
+#
+# echo "host\tservice\tstatus\tmessage\n" | send_nsca -H 192.168.2.57 
+# /usr/local/nagios/bin/nsca-ng -c /usr/local/nagios/etc/nsca-ng.cfg -P /usr/local/nagios/var/nsca-ng.pid -F
+#

@@ -1,0 +1,29 @@
+# http://graphite.wikidot.com/installation
+---
+- hosts: all
+  user: jwallace
+  sudo: yes
+  tasks:
+# machine NEEDS to be 64bits!  test for that
+  - name: Make sure Python SELinux bindinds are installed
+    yum: pkg=libselinux-python state=installed
+
+  - name: Check to see if SELinux is installed
+    stat: path=/etc/selinux/config
+    register: seconf
+
+  - name: Disable SELinux
+    lineinfile: dest=/etc/selinux/config regexp=^SELINUX= line=SELINUX=disabled
+    when: seconf.stat.exists is defined and seconf.stat.exists == true
+
+  - name: Install mongo repo
+    copy: src=/etc/ansible/filestore/mongo.repo dest=/etc/yum.repos.d/mongo.repo owner=root group=root mode=644
+
+  - name: Install mongo packages
+    yum: pkg={{ item }} state=installed
+    with_items:
+    - mongo-10gen 
+    - mongo-10gen-server
+
+  - name: Set mongo server to start at boot
+    service: name=mongod state=started enabled=yes

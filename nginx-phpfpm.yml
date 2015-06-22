@@ -3,10 +3,10 @@
   sudo: yes
   tasks:
   - include: centos6.8-epel.yml
-    when: ansible_distribution == 'CentOS' and ansible_distribution_version == "6.8"
+    when: ansible_distribution == 'CentOS' and {{ ansible_distribution_version | version_compare('7.0', '<') }} == 'True'
 
   - include: centos7-epel.yml
-    when: ansible_distribution == 'CentOS' and ansible_distribution_version == "7"
+    when: ansible_distribution == 'CentOS' and {{ ansible_distribution_version | version_compare('7.0', '>=') }} == 'True'
 
   - name: Install the nginx/php-fpm packages from Yum
     yum: pkg={{ item }} state=installed
