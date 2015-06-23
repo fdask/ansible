@@ -80,11 +80,8 @@
   - name: Copy the uwsgi.py file over
     copy: src=./filestore/uwsgi.py dest=/opt/graphite/webapp/graphite/uwsgi.py
 
-  - name: Download EPEL Repo
-    get_url: dest=/tmp/epel-release.rpm url=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
-
   - name: Install EPEL Repo
-    yum: pkg=/tmp/epel-release.rpm state=installed
+    yum: name=epel-release state=installed
 
   - name: Install nginx
     yum: pkg=nginx state=installed
@@ -114,10 +111,8 @@
   - name: Disable IPTables
     service: name=iptables state=stopped enabled=no
 
-# there is a bug in the graphite code as of this writing.  it's in /opt/graphite/webapp/graphite/storage.py, line 308...  READS:
-#return whisper.fetch(self.fs_path, startTime, endTime, now)
-# NEEDS TO READ
-#return whisper.fetch(self.fs_path, startTime, endTime)
+  - name: fix a big in the graphite code!
+    lineinfile: dest=/opt/graphite/webapp/graphite/storage.py regexp=return whisper.fetch(self.fs_path, startTime, endTime, now) line=return whisper.fetch(self.fs_path, startTime, endTime)
 
 # at this point, you need to create a superuser manually
 # cd /opt/graphite/webapp/graphite; python manage.py createsuperuser
