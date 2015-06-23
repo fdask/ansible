@@ -19,6 +19,8 @@
     - automake
     - gcc
     - python-passlib
+    - libconfuse-devel 
+    - openssl-devel
 
   - name: Grab the fcgiwrap repo
     git: repo=https://github.com/gnosek/fcgiwrap.git dest=/usr/local/src/fcgiwrap
@@ -77,8 +79,6 @@
   - name: enable the nagios service
     service: name=nagios state=started enabled=yes
 
-# remove the /tmp/nagios* files
-
   - name: grab the nagios plugins code
     get_url: url=http://nagios-plugins.org/download/nagios-plugins-2.0.3.tar.gz dest=/tmp/ mode=0440
 
@@ -91,27 +91,24 @@
     - ./configure
     - make 
     - make install
-#
-# cd /usr/local/src
-# wget http://nagios-plugins.org/download/nagios-plugins-2.0.3.tar.gz
-# tar zxvf ./nagios-plugins-2.0.3.tar.gz
-# cd nagios-plugins-2.0.3
-# ./configure
-# make
-# make install
-#
-# # install nsca-ng
-# yum install libconfuse-devel openssl-devel
-#
-# cd /usr/local/src;
-# wget http://www.nsca-ng.org/download/nsca-ng-1.4.tar.gz
-# tar zxvf ./nsca-ng-1.4.tar.gz
-# cd nsca-ng-1.4
-# ./configure --prefix=/usr/local/nagios --enable-server
-# make
-# make install
-#
-#
+
+  - name: remove the /tmp/nagios* files
+    shell: rm -rf /tmp/nagios-4.0.8 chdir=/tmp/
+    shell: rm -rf /tmp/nagios-plugins-2.0.3 chdir=/tmp/
+
+  - name: grab the nsca plugin
+    get_url: url=http://www.nsca-ng.org/download/nsca-ng-1.4.tar.gz dest=/tmp/ mode=0440
+
+  - name: extract nsca tarball
+    shell: 'cd /tmp; tar zxvf ./nsca-ng-1.4.tar.gz'
+
+  - name: install nsca
+    shell: 'cd /tmp/nsca-ng-1.4; {{ item }}'
+    with_items:
+    - ./configure --prefix=/usr/local/nagios --enable-server
+    - make
+    - make install
+
 # echo "host\tservice\tstatus\tmessage\n" | send_nsca -H 192.168.2.57 
 # /usr/local/nagios/bin/nsca-ng -c /usr/local/nagios/etc/nsca-ng.cfg -P /usr/local/nagios/var/nsca-ng.pid -F
 #
