@@ -3,6 +3,9 @@
   user: jwallace
   sudo: yes
   tasks:
+  - name: Install EPEL Repo
+    yum: name=epel-release state=installed
+
   - name: Install a nagios user
     user: name=nagios comment="Nagios User"
 
@@ -21,6 +24,7 @@
     - python-passlib
     - libconfuse-devel 
     - openssl-devel
+    - git
 
   - name: Grab the fcgiwrap repo
     git: repo=https://github.com/gnosek/fcgiwrap.git dest=/usr/local/src/fcgiwrap
