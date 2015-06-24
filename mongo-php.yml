@@ -27,3 +27,23 @@
 
   - name: Set mongo server to start at boot
     service: name=mongod state=started enabled=yes
+
+  - name: install php-pear (for pecl)
+    yum: pkg={{ item }} state=installed
+    with_items:
+    - php-pear
+    - php-devel
+
+  - name: install the mondo bindings from pecl
+    command: pecl install mongo
+    register: peclmongo
+
+  - name: copy over the ini file
+    copy: src=./filestore/mongo.ini dest=/etc/php.d/mongo.ini mode=0644
+
+  - name: debug shit
+    debug: var=peclmongo
+
+  - name: restart php-fpm
+    service: name=php-fpm state=restarted enabled=yes
+    when: peclmongo.changed

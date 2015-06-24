@@ -1,0 +1,118 @@
+---
+- hosts: all
+  user: jwallace
+  sudo: yes
+  tasks:
+  - name: Install EPEL Repo
+    yum: name=epel-release state=installed
+
+  - name: Install a nagios user
+    user: name=nagios comment="Nagios User"
+
+  - name: Install some required packages
+    yum: pkg={{ item }} state=installed
+    with_items:
+    - fcgi-devel
+    - spawn-fcgi
+    - httpd-tools
+    - mailx
+    - gd
+    - gd-devel
+    - autoconf
+    - automake
+    - gcc
+    - python-passlib
+    - libconfuse-devel 
+    - openssl-devel
+    - git
+
+  - name: Grab the fcgiwrap repo
+    git: repo=https://github.com/gnosek/fcgiwrap.git dest=/usr/local/src/fcgiwrap
+
+  - name: Compile and install fcgiwrap
+    shell: 'cd /usr/local/src/fcgiwrap; {{ item }}'
+    with_items:
+    - autoreconf -i
+    - ./configure
+    - make
+    - make install
+
+  - name: copy over the spawn-fcgi config file!
+    copy: src=filestore/spawn-fcgi dest=/etc/sysconfig/spawn-fcgi owner=root group=root mode=644
+
+  - name: tell spawn-fcgi to start at boot, and start now
+    service: name=spawn-fcgi state=started enabled=yes
+
+  - name: grab the nagios code
+    get_url: url=http://prdownloads.sourceforge.net/sourceforge/nagios/nagios-4.0.8.tar.gz dest=/tmp/ mode=0440
+
+  - name: extract nagios tarball
+    shell: 'cd /tmp; tar zxvf ./nagios-4.0.8.tar.gz'
+
+  - name: install nagios
+    shell: 'cd /tmp/nagios-4.0.8; {{ item }}'
+    with_items:
+    - ./configure
+    - make all
+    - make install-base
+    - make install-init
+    - make install-config
+    - make install-commandmode
+    - make install-cgis
+    - make install-html 
+
+  - name: install the nagios.conf file in the nginx conf.d directory
+    copy: src=filestore/nagios.conf dest=/etc/nginx/conf.d/nagios.conf owner=root group=root mode=644
+
+  - name: generate an htpasswd file to be used for the authentication
+    htpasswd: path=/usr/local/nagios/etc/passwd name=jwallace password=testing owner=nginx mode=640
+
+  - name: edit the nagios path in the config for the cgi's
+    lineinfile: dest=/usr/local/nagios/etc/cgi.cfg regexp=url_html_path=/nagios line=url_html_path=/
+
+  - name: set up the user for full permissions
+    replace: dest=/usr/local/nagios/etc/cgi.cfg replace=jwallace regexp=nagiosadmin
+
+  - name: create some directories for nagios to use as a spool
+    file: path=/usr/local/nagios/var/spool state=directory mode=0755 owner=nagios
+    file: path=/usr/local/nagios/var/spool/checkresults state=directory mode=0755 owner=nagios
+
+  - name: restart nginx
+    service: name=nginx state=restarted
+
+  - name: enable the nagios service
+    service: name=nagios state=started enabled=yes
+
+  - name: grab the nagios plugins code
+    get_url: url=http://nagios-plugins.org/download/nagios-plugins-2.0.3.tar.gz dest=/tmp/ mode=0440
+
+  - name: extract nagios plugins tarball
+    shell: 'cd /tmp; tar zxvf ./nagios-plugins-2.0.3.tar.gz'
+
+  - name: install nagios plugins!
+    shell: 'cd /tmp/nagios-plugins-2.0.3; {{ item }}'
+    with_items:
+    - ./configure
+    - make 
+    - make install
+
+  - name: remove the /tmp/nagios* files
+    shell: rm -rf /tmp/nagios-4.0.8 chdir=/tmp/
+    shell: rm -rf /tmp/nagios-plugins-2.0.3 chdir=/tmp/
+
+  - name: grab the nsca plugin
+    get_url: url=http://www.nsca-ng.org/download/nsca-ng-1.4.tar.gz dest=/tmp/ mode=0440
+
+  - name: extract nsca tarball
+    shell: 'cd /tmp; tar zxvf ./nsca-ng-1.4.tar.gz'
+
+  - name: install nsca
+    shell: 'cd /tmp/nsca-ng-1.4; {{ item }}'
+    with_items:
+    - ./configure --prefix=/usr/local/nagios --enable-server
+    - make
+    - make install
+
+# echo "host\tservice\tstatus\tmessage\n" | send_nsca -H 192.168.2.57 
+# /usr/local/nagios/bin/nsca-ng -c /usr/local/nagios/etc/nsca-ng.cfg -P /usr/local/nagios/var/nsca-ng.pid -F
+#

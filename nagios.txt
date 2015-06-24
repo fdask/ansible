@@ -1,0 +1,56 @@
+useradd nagios
+
+yum install fcgi-devel spawn-fcgi httpd-tools mailx gd gd-devel
+
+cd /usr/local/src
+git clone https://github.com/gnosek/fcgiwrap.git
+cd fcgiwrap
+autoreconf -i
+./configure
+make
+make install
+
+# vim /etc/sysconfig/spawn-fcgi
+FCGI_SOCKET=/var/run/fcgiwrap.socket
+FCGI_PROGRAM=/usr/local/sbin/fcgiwrap
+FCGI_USER=nginx
+FCGI_GROUP=nginx
+FCGI_EXTRA_OPTIONS="-M 0770"
+OPTIONS="-u $FCGI_USER -g $FCGI_GROUP -s $FCGI_SOCKET -S $FCGI_EXTRA_OPTIONS -F 1 -P 
+
+/var/run/spawn-fcgi.pid -- $FCGI_PROGRAM"
+
+tell spawn-fcgi to start at boot, and start now
+
+wget http://prdownloads.sourceforge.net/sourceforge/nagios/nagios-4.0.8.tar.gz
+tar zxvf ./nagios-4.0.8.tar.gz
+cd nagios-4.0.8
+./configure
+make all
+make install
+make install-init
+make install-config
+make install-commandmode
+make install-cgis
+make install-html
+
+install the nagios.conf file in the nginx conf.d directory!
+
+generate an htpasswd file to be used for the authentication
+# htpasswd /usr/local/nagios/etc/passwd jwallace
+testing
+
+restart nagios
+
+edit the cgi.cfg and change 
+url_html_path=/nagios
+to 
+url_html_path=/
+
+cd /usr/local/src
+wget http://nagios-plugins.org/download/nagios-plugins-2.0.3.tar.gz
+tar zxvf ./nagios-plugins-2.0.3.tar.gz
+cd nagios-plugins-2.0.3
+./configure
+make
+make install

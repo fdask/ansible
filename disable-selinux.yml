@@ -1,0 +1,10 @@
+- name: Make sure Python SELinux bindinds are installed
+  yum: pkg=libselinux-python state=installed
+
+- name: Check to see if SELinux is installed
+  stat: path=/etc/selinux/config
+  register: seconf
+
+- name: Disable SELinux
+  lineinfile: dest=/etc/selinux/config regexp=^SELINUX= line=SELINUX=disabled
+  when: seconf.stat.exists is defined and seconf.stat.exists == true
