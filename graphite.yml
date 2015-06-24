@@ -4,13 +4,19 @@
   user: jwallace
   sudo: yes
   tasks:
+  - include: disable-selinux.yml
+
+  - name: Upgrade python if CentOS < 7
+    include: python2.7.yml
+    when: ansible_distribution=="CentOS" and ansible_distribution_major_version|int < 7
+
   - name: We need git, and some python tools
     yum: pkg={{ item }} state=installed
     with_items:
     - git
-    - python-setuptools
     - pcre
     - pcre-devel
+#    - python-setuptools
 
   - name: Install python-twisted-core (CentOS 7)
     yum: name=python-twisted-core state=installed
@@ -114,6 +120,9 @@
   - name: fix a big in the graphite code!
     lineinfile: dest=/opt/graphite/webapp/graphite/storage.py regexp=return whisper.fetch(self.fs_path, startTime, endTime, now) line=return whisper.fetch(self.fs_path, startTime, endTime)
 
+  - name: create the django super user
+    shell: cd /opt/graphite/webapp/graphite; echo "from django.contrib.auth.models import User; User.objects.create_superuser('jwallace', 'james.wallace@needls.com', 'testing')" | python manage.py shell
+
 # at this point, you need to create a superuser manually
 # cd /opt/graphite/webapp/graphite; python manage.py createsuperuser
 #
@@ -126,5 +135,7 @@
 # from django.core.wsgi import get_wsgi_application
 # application = get_wsgi_application()
 
+#  - name: fix up a bug in the wsgi_app call
+#    lineinfile: dest=/opt/graphite/webapp/graphite regexp=^SELINUX= line=SELINUX=enforcing
 # in /opt/graphite/conf/carbon.conf we have to change the storage directory to point to /opt/graphite/storage before
 # anything in the UI gets picked up!
