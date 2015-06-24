@@ -1,12 +1,19 @@
 ---
 - hosts: all
   sudo: yes
+  vars:
+    major_dist_version: "{{ ansible_distribution_version|truncate(1, True, '')|int }}"
   tasks:
+  - debug: msg="{{major_dist_version}}"
+
+  - name: Disable SELinux
+    selinux: state=disabled
+
   - include: centos6.8-epel.yml
-    when: ansible_distribution == 'CentOS' and ansible_distribution_version == "6.8"
+    when: ansible_distribution == 'CentOS' and major_dist_version == "6"
 
   - include: centos7-epel.yml
-    when: ansible_distribution == 'CentOS' and ansible_distribution_version == "7"
+    when: ansible_distribution == 'CentOS' and major_dist_version == "7"
 
   - name: Install the nginx/php-fpm packages from Yum
     yum: pkg={{ item }} state=installed
@@ -30,6 +37,11 @@
     with_items:
     - nginx
     - php-fpm
+
+  - name: Add exception for web traffic to firewalld
+    firewalld: service=https permanent=true state=enabled immediate=yes
+    firewalld: service=http permanent=true state=enabled immediate=yes
+    #when: ansible_distribution == 'CentOS' and major_dist_version == "7" and firewalld_result.stdout == "active"
 
   handlers:
   - name: restart nginx

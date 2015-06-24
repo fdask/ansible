@@ -18,7 +18,7 @@
     lineinfile: dest=/home/jwallace/.bashrc line="source $HOME/.homesick/repos/homeshick/homeshick.sh" regexp='homeshick'
 
   - name: Clone my dotfile Repo
-    git: repo=git://github.com/fdask/dotfiles.git dest=/home/jwallace/.homesick/repos/dotfiles
+    git: repo=git://github.com/fdask/dotfiles.git dest=/home/jwallace/.homesick/repos/dotfiles accept_hostkey=true
 
   - name: Link out dotfiles
     command: /home/jwallace/.homesick/repos/homeshick/bin/homeshick link dotfiles -f -q
