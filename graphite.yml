@@ -6,9 +6,13 @@
   tasks:
   - include: disable-selinux.yml
 
+  - name: check to see if python 2.7 altinstall exists!
+    stat: path=/usr/local/bin/python2.7
+    register: p2
+
   - name: Upgrade python if CentOS < 7
     include: python2.7.yml
-    when: ansible_distribution=="CentOS" and ansible_distribution_major_version|int < 7
+    when: ansible_distribution=="CentOS" and ansible_distribution_major_version|int < 7 and not p2.stat.exists
 
   - name: We need git, and some python tools
     yum: pkg={{ item }} state=installed
@@ -36,22 +40,28 @@
     - libevent-devel
     - python-devel
     - gcc-c++
+    - sqlite-devel
+    - libffi-devel
 
   - name: Install pip
-    easy_install: name=pip
+    easy_install: executable=/usr/local/bin/easy_install name=pip
 
-  - name: Upgrade setuptools (1/2)
-    pip: name=setuptools extra_args='--upgrade --no-use-wheel'
+#  - name: Upgrade setuptools (1/2)
+#    pip: name=setuptools extra_args='--upgrade --no-use-wheel'
 
-  - name: Upgrade setuptools (2/2)
-    pip: name=setuptools extra_args='--upgrade --no-use-wheel'
+#  - name: Upgrade setuptools (2/2)
+#    pip: name=setuptools extra_args='--upgrade --no-use-wheel'
 
   - name: Use pip to install needed python libraries
-    pip: name={{ item }} use_mirrors=no
+    pip: name={{ item }} use_mirrors=no executable=/usr/local/bin/pip
     with_items:
     - django
     - django-tagging
     - uwsgi
+    - pyopenssl 
+    - ndg-httpsclient
+    - pyasn1
+    - pysqlite
 
   - name: Download whisper (stable version)
     git: repo=https://github.com/graphite-project/whisper.git dest=/tmp/whisper version=0.9.x
@@ -99,7 +109,7 @@
     copy: src=./filestore/graphite_local_settings.py dest=/opt/graphite/webapp/graphite/local_settings.py
 
   - name: Initialize the SQLite DB
-    command: chdir=/opt/graphite/webapp/graphite python manage.py syncdb --noinput
+    command: chdir=/opt/graphite/webapp/graphite /usr/local/bin/python2.7 manage.py syncdb --noinput
 
   - name: Setup proper graphite permissions
     file: path=/opt/graphite/storage owner=nginx recurse=yes
@@ -118,10 +128,14 @@
     service: name=iptables state=stopped enabled=no
 
   - name: fix a big in the graphite code!
-    lineinfile: dest=/opt/graphite/webapp/graphite/storage.py regexp=return whisper.fetch(self.fs_path, startTime, endTime, now) line=return whisper.fetch(self.fs_path, startTime, endTime)
+    lineinfile: dest=/opt/graphite/webapp/graphite/storage.py regexp="return whisper.fetch" line="return whisper.fetch(self.fs_path, startTime, endTime)"
 
   - name: create the django super user
-    shell: cd /opt/graphite/webapp/graphite; echo "from django.contrib.auth.models import User; User.objects.create_superuser('jwallace', 'james.wallace@needls.com', 'testing')" | python manage.py shell
+    shell: cd /opt/graphite/webapp/graphite; echo "from django.contrib.auth.models import User; User.objects.create_superuser('jwallace', 'james.wallace@needls.com', 'testing')" | /usr/local/bin/python manage.py shell
+
+  - name: update the uwsgi.py file
+    lineinfile: dest=/opt/graphite/webapp/graphite/uwsgi.py regexp/opt/graphite/webapp/graphite/uwsgi.py regexp="import django.core.handlers.wsgi" line="from django.core.wsgi import get_wsgi_application"
+    lineinfile: dest=/opt/graphite/webapp/graphite/uwsgi.py regexp/opt/graphite/webapp/graphite/uwsgi.py regexp="application = django.core.handlers.wsgi.WSGIHandler()" line="application = get_wsgi_application()"
 
 # at this point, you need to create a superuser manually
 # cd /opt/graphite/webapp/graphite; python manage.py createsuperuser

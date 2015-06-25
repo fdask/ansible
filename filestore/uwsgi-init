@@ -13,7 +13,7 @@
 . /etc/init.d/functions
 
 PROG=uwsgi
-DIR=/usr/bin
+DIR=/usr/local/bin
 PIDFILE=/var/run/$PROG.pid
 LOGFILE=/var/log/$PROG.log
 OPTIONS="--ini /opt/graphite/conf/graphite.ini --daemonize $LOGFILE"
