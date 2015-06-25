@@ -8,6 +8,7 @@
   - zlib-devel
   - readline-devel
   - openssl-devel
+  - bzip2-devel
 
 - name: grab the python tarball
   get_url: url=https://www.python.org/ftp/python/2.7.6/Python-2.7.6.tgz dest=/tmp/ mode=0440

@@ -20,15 +20,14 @@
     - git
     - pcre
     - pcre-devel
-#    - python-setuptools
 
-  - name: Install python-twisted-core (CentOS 7)
-    yum: name=python-twisted-core state=installed
-    when: ansible_distribution=="CentOS" and ansible_distribution_major_version=="7"
+#  - name: Install python-twisted-core (CentOS 7)
+#    yum: name=python-twisted-core state=installed
+#    when: ansible_distribution=="CentOS" and ansible_distribution_major_version=="7"
 
-  - name: Install python-twisted (CentOS < 7)
-    yum: name=python-twisted state=installed
-    when: ansible_distribution=="CentOS" and ansible_distribution_major_version|int < 7
+#  - name: Install python-twisted (CentOS < 7)
+#    yum: name=python-twisted state=installed
+#    when: ansible_distribution=="CentOS" and ansible_distribution_major_version|int < 7
 
   - name: python-memcached, pycairo, bitmap-fonts-compat, libevent-devel, python-devel, gcc-c++
     yum: pkg={{ item }} state=installed
@@ -62,18 +61,19 @@
     - ndg-httpsclient
     - pyasn1
     - pysqlite
+    - twisted
 
   - name: Download whisper (stable version)
     git: repo=https://github.com/graphite-project/whisper.git dest=/tmp/whisper version=0.9.x
 
   - name: Install whisper
-    command: chdir=/tmp/whisper python setup.py install
+    command: chdir=/tmp/whisper /usr/local/bin/python setup.py install
 
   - name: Download carbon
     git: repo=https://github.com/graphite-project/carbon.git dest=/tmp/carbon version=0.9.x
 
   - name: Install carbon
-    command: chdir=/tmp/carbon python setup.py install
+    command: chdir=/tmp/carbon /usr/local/bin/python setup.py install
 
   - name: Configure carbon (1/2)
     command: chdir=/opt/graphite/conf creates=carbon.conf cp carbon.conf.example carbon.conf
@@ -85,7 +85,7 @@
     git: repo=https://github.com/graphite-project/graphite-web.git dest=/tmp/graphite-web version=0.9.x
 
   - name: Install graphite-web
-    command: chdir=/tmp/graphite-web python setup.py install
+    command: chdir=/tmp/graphite-web /usr/local/bin/python setup.py install
 
   - name: Copy the uWSGI init script over
     copy: src=./filestore/uwsgi-init dest=/etc/init.d/uwsgi mode=0755
@@ -109,7 +109,7 @@
     copy: src=./filestore/graphite_local_settings.py dest=/opt/graphite/webapp/graphite/local_settings.py
 
   - name: Initialize the SQLite DB
-    command: chdir=/opt/graphite/webapp/graphite /usr/local/bin/python2.7 manage.py syncdb --noinput
+    command: chdir=/opt/graphite/webapp/graphite /usr/local/bin/python manage.py syncdb --noinput
 
   - name: Setup proper graphite permissions
     file: path=/opt/graphite/storage owner=nginx recurse=yes
@@ -128,26 +128,17 @@
     service: name=iptables state=stopped enabled=no
 
   - name: fix a big in the graphite code!
-    lineinfile: dest=/opt/graphite/webapp/graphite/storage.py regexp="return whisper.fetch" line="return whisper.fetch(self.fs_path, startTime, endTime)"
+    lineinfile: dest=/opt/graphite/webapp/graphite/storage.py regexp="return whisper.fetch" line="      return whisper.fetch(self.fs_path, startTime, endTime)"
 
   - name: create the django super user
     shell: cd /opt/graphite/webapp/graphite; echo "from django.contrib.auth.models import User; User.objects.create_superuser('jwallace', 'james.wallace@needls.com', 'testing')" | /usr/local/bin/python manage.py shell
 
   - name: update the uwsgi.py file
-    lineinfile: dest=/opt/graphite/webapp/graphite/uwsgi.py regexp/opt/graphite/webapp/graphite/uwsgi.py regexp="import django.core.handlers.wsgi" line="from django.core.wsgi import get_wsgi_application"
-    lineinfile: dest=/opt/graphite/webapp/graphite/uwsgi.py regexp/opt/graphite/webapp/graphite/uwsgi.py regexp="application = django.core.handlers.wsgi.WSGIHandler()" line="application = get_wsgi_application()"
+    copy: src=filestore/uwsgi.py dest=/opt/graphite/webapp/graphite/uwsgi.py owner=root group=root mode=644 
 
 # at this point, you need to create a superuser manually
 # cd /opt/graphite/webapp/graphite; python manage.py createsuperuser
 #
-# we need to do an edit to the /opt/graphite/webapp/graphite/uwsgi.py file.  it's not compatible with newer versions of 
-# django.
-#
-# http://stackoverflow.com/questions/25537905/django-1-7-throws-django-core-exceptions-appregistrynotready-models-arent-load
-#
-# essentially replace the import and initialization with
-# from django.core.wsgi import get_wsgi_application
-# application = get_wsgi_application()
 
 #  - name: fix up a bug in the wsgi_app call
 #    lineinfile: dest=/opt/graphite/webapp/graphite regexp=^SELINUX= line=SELINUX=enforcing
