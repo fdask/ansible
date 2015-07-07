@@ -32,15 +32,15 @@
   - name: python-memcached, pycairo, bitmap-fonts-compat, libevent-devel, python-devel, gcc-c++
     yum: pkg={{ item }} state=installed
     with_items:
-    - python-memcached
-    - pycairo
-    - pytz
     - bitmap-fonts-compat
     - libevent-devel
-    - python-devel
     - gcc-c++
     - sqlite-devel
     - libffi-devel
+    #- python-devel
+    #- python-memcached
+    #- pycairo
+    #- pytz
 
   - name: Install pip
     easy_install: executable=/usr/local/bin/easy_install name=pip

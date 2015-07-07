@@ -34,6 +34,8 @@
     - php-pear
     - php-devel
 
+   # this may prompt for some enterprise shit, holding up the install!
+   # try printf "\n" | pecl install apc
   - name: install the mondo bindings from pecl
     command: pecl install mongo
     register: peclmongo
