@@ -1,0 +1,6 @@
+- name: Use pip to install needed python libraries
+  pip: name={{ item }} use_mirrors=no
+  with_items:
+  - django=1.6.11
+  - django-tagging
+  - uwsgi

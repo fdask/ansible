@@ -1,0 +1,8 @@
+- name: Install django 1.7.8
+  pip: name=django version=1.7.8
+
+- name: Use pip to install needed python libraries
+  pip: name={{ item }} use_mirrors=no
+  with_items:
+  - django-tagging
+  - uwsgi

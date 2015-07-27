@@ -17,7 +17,7 @@
     when: seconf.stat.exists is defined and seconf.stat.exists == true
 
   - name: Install mongo repo
-    copy: src=filestore/mongo.repo dest=/etc/yum.repos.d/mongo.repo owner=root group=root mode=644
+    copy: src=/etc/ansible/filestore/mongo.repo dest=/etc/yum.repos.d/mongo.repo owner=root group=root mode=644
 
   - name: Install mongo packages
     yum: pkg={{ item }} state=installed

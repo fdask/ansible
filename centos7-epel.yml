@@ -1,2 +1,2 @@
 - name: Install EPEL Repo
-  yum: pkg=epel-release state=installed
+  yum: name=epel-release state=installed

@@ -1,0 +1,37 @@
+# https://www.digitalocean.com/community/tutorials/how-to-set-up-python-2-7-6-and-3-3-3-on-centos-6-4
+# https://github.com/h2oai/h2o-2/wiki/Installing-python-2.7-on-centos-6.3.-Follow-this-sequence-exactly-for-centos-machine-only
+- name: install python 2.7 compilation requirements
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - wget
+  - gcc
+  - zlib-devel
+  - readline-devel
+  - openssl-devel
+  - bzip2-devel
+
+- name: grab the python tarball
+  get_url: url=https://www.python.org/ftp/python/2.7.6/Python-2.7.6.tgz dest=/tmp/ mode=0440
+
+- name: extract the python tarball
+  shell: 'cd /tmp; tar zxvf ./Python-2.7.6.tgz'
+
+- name: install python 2.7!
+  shell: 'cd /tmp/Python-2.7.6; {{ item }}'
+  with_items:
+  - ./configure --prefix=/usr/local
+  - make
+  - make altinstall
+
+- name: grab the setuptools binary and install!
+  get_url: url=https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py dest=/tmp/ mode=0440
+
+- name: run ez_setup
+  shell: 'cd /tmp/; /usr/local/bin/python2.7 ez_setup.py'
+
+- name: remove the /tmp/ files
+  shell: rm -rf /tmp/Python-2.7.6 chdir=/tmp/
+  shell: rm -rf /tmp/ez_setup.py chdir=/tmp/
+ 
+- name: create a symlink to the 2.7 install
+  file: src=/usr/local/bin/python2.7 dest=/usr/local/bin/python state=link
