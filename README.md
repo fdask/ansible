@@ -10,6 +10,10 @@ Then make sure we can log in using a key!
 
 > ssh-copy-id user@machine
 
+Add the name/hostname of the machine into the ansible inventory
+
+> echo '11.22.33.44' > /etc/ansible/hosts
+
 Probably want to use SSH Agent to remember the passphrase for the keys used.
 
 > ssh-agent bash
